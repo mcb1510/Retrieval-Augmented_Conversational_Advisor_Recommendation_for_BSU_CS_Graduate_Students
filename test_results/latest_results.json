@@ -1,0 +1,472 @@
+{
+  "timestamp": "2025-12-13T00:01:37.381869",
+  "retrieval_tests": [
+    {
+      "query": "Who does artificial intelligence and machine learning research? ",
+      "domain": "AI/ML",
+      "retrieved_faculty": [
+        {
+          "name": "Yu Zhang",
+          "score": 0.6179471611976624
+        },
+        {
+          "name": "Edoardo Serra",
+          "score": 0.6163438558578491
+        },
+        {
+          "name": "Tim Andersen",
+          "score": 0.5978611707687378
+        },
+        {
+          "name": "Jun Zhuang",
+          "score": 0.5953536033630371
+        },
+        {
+          "name": "Eric Henderson",
+          "score": 0.5914539098739624
+        }
+      ],
+      "expected_faculty": [
+        "Tim Andersen",
+        "Edoardo Serra",
+        "Francesca Spezzano",
+        "Jun Zhuang",
+        "Xinyi Zhou"
+      ],
+      "metrics": {
+        "precision_at_1": 0,
+        "precision_at_3": 0.6666666666666666,
+        "precision_at_5": 0.6,
+        "avg_similarity_score": 0.6037919402122498,
+        "latency_seconds": 2.395714282989502
+      }
+    },
+    {
+      "query": "Which faculty work on cybersecurity and network security?",
+      "domain": "Security",
+      "retrieved_faculty": [
+        {
+          "name": "Jyh-haw Yeh",
+          "score": 0.6478215456008911
+        },
+        {
+          "name": "Hoda Mehrpouyan",
+          "score": 0.641993522644043
+        },
+        {
+          "name": "Francesca Spezzano",
+          "score": 0.6036820411682129
+        },
+        {
+          "name": "Gaby Dagher",
+          "score": 0.578466534614563
+        },
+        {
+          "name": "Edoardo Serra",
+          "score": 0.5727428197860718
+        }
+      ],
+      "expected_faculty": [
+        "Jyh-haw Yeh",
+        "Gaby Dagher",
+        "Hoda Mehrpouyan",
+        "Shane Panter"
+      ],
+      "metrics": {
+        "precision_at_1": 1,
+        "precision_at_3": 0.6666666666666666,
+        "precision_at_5": 0.6,
+        "avg_similarity_score": 0.6089412927627563,
+        "latency_seconds": 0.28579092025756836
+      }
+    },
+    {
+      "query": "Who researches human-computer interaction and user experience?",
+      "domain": "HCI",
+      "retrieved_faculty": [
+        {
+          "name": "Jerry Alan Fails",
+          "score": 0.6774091720581055
+        },
+        {
+          "name": "Casey Kennington",
+          "score": 0.6291496753692627
+        },
+        {
+          "name": "Hoda Mehrpouyan",
+          "score": 0.5659653544425964
+        },
+        {
+          "name": "Bogdan Dit",
+          "score": 0.5598762035369873
+        },
+        {
+          "name": "Steven Cutchin",
+          "score": 0.5381752252578735
+        }
+      ],
+      "expected_faculty": [
+        "Jerry Alan Fails"
+      ],
+      "metrics": {
+        "precision_at_1": 1,
+        "precision_at_3": 0.3333333333333333,
+        "precision_at_5": 0.2,
+        "avg_similarity_score": 0.5941151261329651,
+        "latency_seconds": 0.19382262229919434
+      }
+    },
+    {
+      "query": "Tell me about professors working on distributed systems and parallel computing",
+      "domain": "Systems",
+      "retrieved_faculty": [
+        {
+          "name": "Max Taylor",
+          "score": 0.6520569324493408
+        },
+        {
+          "name": "Amit Jain",
+          "score": 0.6364993453025818
+        },
+        {
+          "name": "Jim Buffenbarger",
+          "score": 0.6340068578720093
+        },
+        {
+          "name": "Elena Sherman",
+          "score": 0.6141058206558228
+        },
+        {
+          "name": "Hoda Mehrpouyan",
+          "score": 0.6091746091842651
+        }
+      ],
+      "expected_faculty": [
+        "Amit Jain",
+        "Max Taylor",
+        "Steven Cutchin"
+      ],
+      "metrics": {
+        "precision_at_1": 1,
+        "precision_at_3": 0.6666666666666666,
+        "precision_at_5": 0.4,
+        "avg_similarity_score": 0.629168713092804,
+        "latency_seconds": 0.32093000411987305
+      }
+    },
+    {
+      "query": "Who does computer vision and image processing research?",
+      "domain": "Vision",
+      "retrieved_faculty": [
+        {
+          "name": "Yu Zhang",
+          "score": 0.6480748653411865
+        },
+        {
+          "name": "Edoardo Serra",
+          "score": 0.5891910791397095
+        },
+        {
+          "name": "Steven Cutchin",
+          "score": 0.5764290690422058
+        },
+        {
+          "name": "Jun Zhuang",
+          "score": 0.5711338520050049
+        },
+        {
+          "name": "Casey Kennington",
+          "score": 0.5470812916755676
+        }
+      ],
+      "expected_faculty": [
+        "Yu Zhang"
+      ],
+      "metrics": {
+        "precision_at_1": 1,
+        "precision_at_3": 0.3333333333333333,
+        "precision_at_5": 0.2,
+        "avg_similarity_score": 0.5863820314407349,
+        "latency_seconds": 0.2712545394897461
+      }
+    },
+    {
+      "query": "Which professors work on natural language processing? ",
+      "domain": "NLP",
+      "retrieved_faculty": [
+        {
+          "name": "Eric Henderson",
+          "score": 0.6621492505073547
+        },
+        {
+          "name": "Edoardo Serra",
+          "score": 0.6015809178352356
+        },
+        {
+          "name": "Casey Kennington",
+          "score": 0.5937665700912476
+        },
+        {
+          "name": "Jun Zhuang",
+          "score": 0.5804330110549927
+        },
+        {
+          "name": "Francesca Spezzano",
+          "score": 0.58040452003479
+        }
+      ],
+      "expected_faculty": [
+        "Casey Kennington",
+        "Eric Henderson"
+      ],
+      "metrics": {
+        "precision_at_1": 1,
+        "precision_at_3": 0.6666666666666666,
+        "precision_at_5": 0.4,
+        "avg_similarity_score": 0.6036668539047241,
+        "latency_seconds": 0.18462347984313965
+      }
+    },
+    {
+      "query": "Who researches software engineering and program analysis?",
+      "domain": "Software Engineering",
+      "retrieved_faculty": [
+        {
+          "name": "Elena Sherman",
+          "score": 0.6345517039299011
+        },
+        {
+          "name": "Bogdan Dit",
+          "score": 0.6221424341201782
+        },
+        {
+          "name": "Jim Buffenbarger",
+          "score": 0.5818361043930054
+        },
+        {
+          "name": "Shane Panter",
+          "score": 0.5502907037734985
+        },
+        {
+          "name": "Hoda Mehrpouyan",
+          "score": 0.5342626571655273
+        }
+      ],
+      "expected_faculty": [
+        "Bogdan Dit",
+        "Elena Sherman",
+        "Jim Buffenbarger",
+        "Sarah Frost"
+      ],
+      "metrics": {
+        "precision_at_1": 1,
+        "precision_at_3": 1.0,
+        "precision_at_5": 0.6,
+        "avg_similarity_score": 0.5846167206764221,
+        "latency_seconds": 0.1753394603729248
+      }
+    }
+  ],
+  "fuzzy_match_tests": [
+    {
+      "input": "Jun Zuang",
+      "expected": "Jun Zhuang",
+      "matched": true
+    },
+    {
+      "input": "Fransesca Spezano",
+      "expected": "Francesca Spezzano",
+      "matched": true
+    },
+    {
+      "input": "Edwardo Sera",
+      "expected": "Edoardo Serra",
+      "matched": true
+    },
+    {
+      "input": "Gabi Dagger",
+      "expected": "Gaby Dagher",
+      "matched": true
+    },
+    {
+      "input": "Jerry Fails",
+      "expected": "Jerry Alan Fails",
+      "matched": true
+    },
+    {
+      "input": "Tim Anderson",
+      "expected": "Tim Andersen",
+      "matched": true
+    },
+    {
+      "input": "Jyh Yeh",
+      "expected": "Jyh-haw Yeh",
+      "matched": true
+    },
+    {
+      "input": "Casey Kenington",
+      "expected": "Casey Kennington",
+      "matched": true
+    },
+    {
+      "input": "Xinyi Zou",
+      "expected": "Xinyi Zhou",
+      "matched": true
+    },
+    {
+      "input": "Hoda Merpouyan",
+      "expected": "Hoda Mehrpouyan",
+      "matched": true
+    }
+  ],
+  "query_expansion_tests": [
+    {
+      "query": "AI research",
+      "expanded_query": "AI research neural networks machine learning deep learning artificial intelligence",
+      "avg_score_without_expansion": 0.6248184442520142,
+      "avg_score_with_expansion": 0.6031560897827148,
+      "improvement_percent": -3.466983836437777
+    },
+    {
+      "query": "ML faculty",
+      "expanded_query": "ML faculty statistical learning machine learning deep learning",
+      "avg_score_without_expansion": 0.6329160928726196,
+      "avg_score_with_expansion": 0.6505908966064453,
+      "improvement_percent": 2.792598250046852
+    },
+    {
+      "query": "security professors",
+      "expanded_query": "security professors cybersecurity network security privacy cryptography",
+      "avg_score_without_expansion": 0.6155574917793274,
+      "avg_score_with_expansion": 0.6448040008544922,
+      "improvement_percent": 4.751222991474766
+    },
+    {
+      "query": "HCI work",
+      "expanded_query": "HCI work user experience human computer interaction usability interface design",
+      "avg_score_without_expansion": 0.562926709651947,
+      "avg_score_with_expansion": 0.5304803848266602,
+      "improvement_percent": -5.763863087141159
+    },
+    {
+      "query": "NLP experts",
+      "expanded_query": "NLP experts computational linguistics natural language processing text mining",
+      "avg_score_without_expansion": 0.5905492901802063,
+      "avg_score_with_expansion": 0.5655009150505066,
+      "improvement_percent": -4.241538436538665
+    },
+    {
+      "query": "CV research",
+      "expanded_query": "CV research computer vision pattern recognition image processing",
+      "avg_score_without_expansion": 0.5636364817619324,
+      "avg_score_with_expansion": 0.5846775770187378,
+      "improvement_percent": 3.7330967631887098
+    }
+  ],
+  "special_query_tests": [
+    {
+      "type": "list_query",
+      "query": "list all faculty",
+      "expected_behavior": "Returns complete faculty list",
+      "response": "Here is the list of CS faculty I know about:\n\n- Tim Andersen\n- Jim Buffenbarger\n- Steven Cutchin\n- Gaby Dagher\n- Bogdan Dit\n- Jerry Alan Fails\n- Sarah Frost\n- Eric Henderson\n- Luke Hindman\n- Amit Jain\n- Sindhu Reddy Kalathur Gopal\n- Casey Kennington\n- Andre Keys\n- Min Long\n- Hoda Mehrpouyan\n- Shane ...",
+      "latency_seconds": 0.0,
+      "validation_passed": true
+    },
+    {
+      "type": "list_with_research",
+      "query": "list all faculty with their research areas",
+      "expected_behavior": "Returns faculty with research areas",
+      "response": "Here is the list of CS faculty with their research areas:\n\n• **Tim Andersen**: Artificial Neural Network, Genetic Algorithms\n\n• **Jim Buffenbarger**: Software Engineering, Programming Languages, Programming Language Translators\n\n• **Steven Cutchin**: Scientific Data Visualization, Immersive Environm...",
+      "latency_seconds": 0.0,
+      "validation_passed": true
+    },
+    {
+      "type": "negative_response",
+      "query": "no",
+      "expected_behavior": "Graceful acknowledgment",
+      "response": "No problem!   Feel free to ask me about other faculty members, research areas, or anything else about the BSU CS graduate program.   How else can I help you?",
+      "latency_seconds": 0.0,
+      "validation_passed": true
+    }
+  ],
+  "latency_tests": [
+    {
+      "query": "Who does AI research? ",
+      "avg_latency_seconds": 0.24106192588806152,
+      "min_latency_seconds": 0.2325596809387207,
+      "max_latency_seconds": 0.2568981647491455
+    },
+    {
+      "query": "Tell me about Jun Zhuang",
+      "avg_latency_seconds": 0.26102685928344727,
+      "min_latency_seconds": 0.25789642333984375,
+      "max_latency_seconds": 0.26618194580078125
+    },
+    {
+      "query": "Which professors work on security?",
+      "avg_latency_seconds": 0.31309008598327637,
+      "min_latency_seconds": 0.30475592613220215,
+      "max_latency_seconds": 0.32175207138061523
+    },
+    {
+      "query": "list all faculty",
+      "avg_latency_seconds": 0.2564651171366374,
+      "min_latency_seconds": 0.24964261054992676,
+      "max_latency_seconds": 0.26955103874206543
+    },
+    {
+      "query": "Who researches machine learning and deep learning?",
+      "avg_latency_seconds": 0.2709323565165202,
+      "min_latency_seconds": 0.2589871883392334,
+      "max_latency_seconds": 0.28153252601623535
+    }
+  ],
+  "baseline_comparison": {
+    "test_query": "Who does machine learning and artificial intelligence research?",
+    "full_system": {
+      "avg_score": 0.6082929611206055,
+      "top_faculty": [
+        "Edoardo Serra",
+        "Yu Zhang",
+        "Jun Zhuang"
+      ],
+      "all_scores": [
+        0.6232020854949951,
+        0.6215699315071106,
+        0.6050074100494385,
+        0.6026486158370972,
+        0.589036762714386
+      ]
+    },
+    "without_query_expansion": {
+      "avg_score": 0.6082929611206055,
+      "top_faculty": [
+        "Edoardo Serra",
+        "Yu Zhang",
+        "Jun Zhuang"
+      ],
+      "all_scores": [
+        0.6232020854949951,
+        0.6215699315071106,
+        0.6050074100494385,
+        0.6026486158370972,
+        0.589036762714386
+      ],
+      "performance_drop_percent": 0.0
+    },
+    "top_k_3": {
+      "avg_score": 0.6165931423505148,
+      "top_faculty": [
+        "Edoardo Serra",
+        "Yu Zhang",
+        "Jun Zhuang"
+      ],
+      "all_scores": [
+        0.6232020854949951,
+        0.6215699315071106,
+        0.6050074100494385
+      ]
+    }
+  },
+  "fuzzy_match_accuracy": 1.0
+}
