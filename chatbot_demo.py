@@ -53,14 +53,19 @@ with col2:
 
 with st.sidebar:
     # Section 1: About current demo
-    st.header("About This Demo")
+    st.header("Not sure where to start?")
     st.markdown("""
-    **Current Phase: Smart Conversational Interface**
+        Not sure how to choose a graduate advisor? You are not alone.
+
+        This assistant helps you explore faculty, research areas, and advising options.
+        There is no right way to start, just ask what you are curious about.
+        """)
+    st.markdown("""
     
     **Try asking:**
     - "Hello, how are you?"
-    - "Who does AI research?"
-    - "Which professors are available?"
+    - "List all faculty with their research areas."
+    - "What faculty does AI research?"
     - "Tell me about Dr. Xinyi Zhou"
     - "How do I choose an advisor?"
     """)

@@ -31,6 +31,10 @@ def _detect_list_query(text: str) -> bool:
     ]
     return any(re.search(pattern, q) for pattern in patterns)
 
+def _detect_list_with_research_query(text: str) -> bool:
+    """Detect if user wants faculty list WITH research areas."""
+    q = text.lower()
+    return bool(re.search(r"(list|show).*(faculty|professors? ).*(research|areas?|interests?)", q))
 
 # HELPER CLASS FOR QUERY EXPANSION
 class QueryProcessor:
@@ -252,7 +256,28 @@ class ResponseEngine:
             + "\n\nYou can ask me about any specific person, or tell me your interests and I will recommend a few advisors."
         )
 
-    
+    def _list_all_faculty_with_research(self):
+        """Return faculty list with research areas."""
+        if not self.faculty_ids or not self.faculty_texts:
+            return "I do not have any faculty data loaded right now."
+        
+        self.conversation_memory = {"last_query": None, "last_retrieved": None}
+
+        lines = []
+        for name, profile in zip(self.faculty_ids, self.faculty_texts):
+            # Extract between "Research Areas:" and " Paper " or " Google Scholar:"
+            if "Research Areas:" in profile:
+                research = profile.split("Research Areas:")[1].split(" Paper ")[0].split(" Google Scholar: ")[0].strip()
+            else:
+                research = "Research areas not listed"
+            lines.append(f"• **{name}**: {research}")
+        
+        return (
+            "Here is the list of CS faculty with their research areas:\n\n" 
+            + "\n\n".join(lines)
+            + "\n\nAsk me about any specific professor for more details!"
+        )
+        
     def _answer_for_specific_faculty(self, faculty_name, history=None):
         """
         Build a focused prompt for one matched faculty member. 
@@ -523,7 +548,8 @@ class ResponseEngine:
         3) Inject them into a system message.
         4) Ask Llama to answer using ONLY that faculty context.
         """
-
+        if _detect_list_with_research_query(user_query) and self.faculty_ids:
+            return self._list_all_faculty_with_research()
         # ============================================================
         # PRIORITY CHECK 1: List all faculty (should happen FIRST)
         # ============================================================
@@ -560,7 +586,7 @@ class ResponseEngine:
         # PRIORITY CHECK 3: Handle affirmative/negative responses
         # ============================================================
         affirmative_patterns = [
-            r'^(yes|yeah|yep|yup|sure|ok|okay|alright|please|yes please|sure thing)\. ?! ? $',
+            r'^(yes|yeah|yep|yup|sure|ok|okay|alright|please|yes please|sure thing)\.? ! ?$',
             r'^(yes|yeah|sure),?\s+(tell me|show me|give me|send me|what about)',
             r'^tell me more$',
             r'^show me more$',
