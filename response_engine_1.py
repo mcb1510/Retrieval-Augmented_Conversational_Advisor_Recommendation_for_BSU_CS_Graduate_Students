@@ -23,8 +23,6 @@ def _similarity(a: str, b: str) -> float:
 def _detect_list_query(text: str) -> bool:
     """Detect if the user is asking for a list of all faculty using regex-based intent detection."""
     q = text.lower()
-    #pattern = r"(list|show|display|give).*(faculty|professors|everyone|all)"
-    #return re.search(pattern, q) is not None
     patterns = [
         r"(list|show|display|give|tell me).*(all|everyone|every).*(faculty|professors? )",
         r"(list|show|display).*(faculty|professors?)",
@@ -215,9 +213,7 @@ class ResponseEngine:
             print("[RAG] Retrieval requested but RAG resources are not loaded.")
             return []        
 
-
         # Encode and normalize query
-        #q_emb = self.embed_model.encode([query])[0]
         expanded_query = self.query_processor.expand_query(query)
         q_emb = self.embed_model.encode([expanded_query])[0]
         q_emb = q_emb / (np.linalg.norm(q_emb) + 1e-12)
@@ -256,10 +252,10 @@ class ResponseEngine:
             + "\n\nYou can ask me about any specific person, or tell me your interests and I will recommend a few advisors."
         )
 
+    
     def _answer_for_specific_faculty(self, faculty_name, history=None):
-        print("ENTERED _answer_for_specific_faculty()")
         """
-        Build a focused prompt for one matched faculty member.
+        Build a focused prompt for one matched faculty member. 
         This is used when we fuzzy match a misspelled name.
         """
         if not self.faculty_ids or not self.faculty_texts:
@@ -271,52 +267,58 @@ class ResponseEngine:
             return "I could not find that faculty in my profiles."
 
         profile = self.faculty_texts[idx]
-        #  Store memory for follow-up questions (Fix 3 completion)
+        
+        # Store memory for follow-up questions
         self.conversation_memory["last_query"] = faculty_name
         self.conversation_memory["last_retrieved"] = [{
             "name": faculty_name,
             "profile_text": profile
         }]
-
-        print("PROFILE SENT TO LLM:\n", profile)
+        
         prompt = f"""
-                    You are the AI Graduate Advisor for Boise State University.
+            You are the AI Graduate Advisor for Boise State University. 
 
-                    The user is asking specifically about: {faculty_name}
+            The user is asking about:  {faculty_name}
 
-                    Here is the full faculty profile extracted from the database:
-                    {profile}
+            FACULTY PROFILE:
+            {profile}
 
-                    Your job:
-                    1. Give a concise but rich summary of this professor's research areas.
-                    2. Highlight specific keywords that match the user's query if any.
-                    3. Mention typical graduate student backgrounds this professor supervises.
-                    4. If the professor is known to be active in advising, say that.
-                    5. Keep the answer helpful, direct, and focused.
+            INSTRUCTIONS:
+            1. Give a concise but rich summary of this professor's research areas.
+            2. Explain what makes their research interesting or impactful (3-4 sentences)
+            3. Describe what background, skills, and interests graduate students typically need to work with this professor (2-3 sentences)
+            4. Include all available contact information:  email, office location, and Google Scholar link
+            5. Keep the answer helpful, direct, and focused.
+            6. Be specific about their research - use the actual topics from their profile
+            7. Do NOT use phrases like "keywords that match your query", "specific keywords", or "as an active researcher"
+            8. Avoid repeating boilerplate language.
+            9. Always ask at the end if there is anything else you can help with.(1 very small question)
 
-                    Avoid repeating boilerplate language.
-                    """
+            TONE: 
+            - Informative and professional but conversational
+            - Enthusiastic about the professor's research
+            - Helpful and practical for students making decisions
+            """
 
         messages = [
             {"role": "system", "content": prompt},
-            {"role": "user", "content": f"Tell me about {faculty_name} as a potential advisor for me."}
+            {"role": "user", "content": f"Tell me about {faculty_name} as a potential advisor for me. "}
         ]
 
-        # Optionally include short history, but it is not critical here
+        # Optionally include short history
         if history:
             for msg in history[-3:]:
-                messages.insert(1, {  # insert after system
+                messages.insert(1, {
                     "role": msg["role"],
-                    "content": msg["content"]
+                    "content":  msg["content"]
                 })
 
-        return self._query_groq(messages, max_tokens=500)
+        return self._query_groq(messages, max_tokens=600)
     
-
-    def _answer_followup_fact(self, faculty_name, user_query):
+    def _answer_followup_fact(self, faculty_name, user_query, history=None):
         """
         Extracts specific factual information (like office, email, interests)
-        from the stored faculty profile instead of giving a full advisor summary.
+        from the stored faculty profile with a conversational tone.
         """
 
         # Locate the faculty in the dataset
@@ -326,32 +328,64 @@ class ResponseEngine:
             return "I couldn't find that faculty member anymore."
 
         profile = self.faculty_texts[idx]
+        
+        # Build conversation context from history if available
+        conversation_context = ""
+        if history and len(history) > 0:
+            recent_messages = history[-6:]  # Last 3 exchanges
+            conversation_context = "RECENT CONVERSATION:\n"
+            for msg in recent_messages:
+                role = "USER" if msg. get("role") == "user" else "ASSISTANT"
+                content = msg.get("content", "")
+                # Truncate very long messages
+                if len(content) > 300:
+                    content = content[:300] + "..."
+                conversation_context += f"{role}: {content}\n\n"
 
-        # Build a minimal factual prompt
+        # Build a conversational factual prompt
         prompt = f"""
-    You are a factual extraction assistant. You are given a faculty profile
-    and a user question. Answer ONLY the question directly and concisely,
-    using EXACTLY the information from the profile, with no extra commentary.
+            You are the BSU Graduate Advisor AI Assistant. You are helping a student learn about Professor {faculty_name}. 
 
-    FACULTY PROFILE:
-    {profile}
+            {conversation_context}
 
-    USER QUESTION:
-    {user_query}
+            FACULTY PROFILE:
+            {profile}
 
-    INSTRUCTION:
-    - If the answer is in the profile, return ONLY that fact.
-    - If the profile does not contain the answer, say "That information is not listed."
-    - Do NOT repeat the entire profile.
-    - Do NOT give an advisor summary.
-    """
+            CURRENT USER INPUT:
+            {user_query}
 
+            INSTRUCTIONS:
+            - If the user said "yes", "sure", "ok", or similar, look at the RECENT CONVERSATION to see what you offered
+            - Provide the specific information that was offered in your previous message
+            - If you offered multiple options (e.g., "research areas or contact info"), pick the first one or most relevant
+            - If the user said "no", acknowledge and offer other help
+            - If you cannot determine what they want from context, ask for clarification
+            - Answer directly and conversationally in complete sentences
+            - After answering, offer to help further with a friendly follow-up question
+            - Keep it brief but warm and helpful (2-3 sentences + follow-up offer)
+            - If the information is not in the profile, say so politely and suggest alternatives (like Google Scholar)
+
+            EXAMPLES: 
+
+            Previous:  "Would you like to know more about her research areas or how to contact her?"
+            User: "yes"
+            Response: "Professor Zhou's research focuses on Trustworthy Generative AI, Human-Centered LLMs, Multimodal Machine Learning, and LLM Agents. Her work is particularly relevant for students interested in making AI systems more reliable and human-centered.  Would you like to know about her publications or how to reach out to her?"
+
+            Previous: "Would you like to visit her Google Scholar page?"
+            User: "yes"
+            Response: "You can find Professor Zhou's Google Scholar page at https://scholar.google.com/citations?user=9U_Ge4MAAAAJ. This will show you her publications and current research projects.  Is there anything else you'd like to know about Professor Zhou?"
+
+            Previous: "Would you like to know more?"
+            User: "no"
+            Response: "No problem! Feel free to ask me about other faculty members or research areas. How else can I help you?"
+            """
         messages = [
             {"role": "system", "content": prompt},
             {"role": "user", "content": user_query}
         ]
 
-        return self._query_groq(messages, max_tokens=120)
+        return self._query_groq(messages, max_tokens=200)
+    
 
 
     def _is_followup(self, query: str) -> bool:
@@ -376,23 +410,23 @@ class ResponseEngine:
         - 'new_professor'
         """
         system_prompt = """
-        You are a query classifier. Classify the user's question into ONE of these:
+            You are a query classifier. Classify the user's question into ONE of these:
 
-        1. followup_person:
-        - The question refers to the previously discussed professor.
-        - Includes pronouns like he, him, his, she, her, they, them.
-        - Includes questions about their office, email, research areas, advising, etc.
+            1. followup_person:
+            - The question refers to the previously discussed professor.
+            - Includes pronouns like he, him, his, she, her, they, them.
+            - Includes questions about their office, email, research areas, advising, etc.
 
-        2. general_concept:
-        - The question asks about a research field, definition, concept, method,
-            technique, or career/job possibilities (e.g., "what is X?", "what jobs can X lead to?").
+            2. general_concept:
+            - The question asks about a research field, definition, concept, method,
+                technique, or career/job possibilities (e.g., "what is X?", "what jobs can X lead to?").
 
-        3. new_professor:
-        - The question is asking about a professor different from the last one
-            (directly or indirectly), OR is requesting new advisor recommendations.
+            3. new_professor:
+            - The question is asking about a professor different from the last one
+                (directly or indirectly), OR is requesting new advisor recommendations.
 
-        Respond with ONLY the category name: followup_person, general_concept, or new_professor.
-        """
+            Respond with ONLY the category name: followup_person, general_concept, or new_professor.
+            """
 
         messages = [
             {"role": "system", "content": system_prompt},
@@ -414,145 +448,25 @@ class ResponseEngine:
 
     def _answer_concept_definition(self, query):
         prompt = f"""
-        You are an AI assistant. Provide a clear explanation for the research concept
-        or topic the user is asking about.
+            You are an AI assistant. Provide a clear explanation for the research concept
+            or topic the user is asking about.
 
-        Requirements:
-        - Give a correct 2–4 sentence definition.
-        - Use examples relevant to Computer Science.
-        - If appropriate, mention what careers or research areas use this concept.
+            Requirements:
+            - Give a correct 2–4 sentence definition.
+            - Use examples relevant to Computer Science.
+            - If appropriate, mention what careers or research areas use this concept.
+            - Always asks if there is anything else you can help with.(1 very small question)
 
-        USER QUESTION:
-        {query}
-        """
+            USER QUESTION:
+            {query}
+            """
         messages = [
             {"role": "system", "content": prompt},
             {"role": "user", "content": query}
         ]
         return self._query_groq(messages, max_tokens=300)
 
-    def generate_rag_answer(self, user_query, history=None, top_k=5):
-        """
-        RAG mode:
-        1) Special handling: list-all queries and fuzzy name matches.
-        2) Otherwise retrieve top_k matching faculty profiles.
-        3) Inject them into a system message.
-        4) Ask Llama to answer using ONLY that faculty context.
-        """
-
-        # PRIORITY CHECK 1: List all faculty (should happen first)
-        if _detect_list_query(user_query) and self.faculty_ids:
-            return self._list_all_faculty_text()
-        
-        # PRIORITY CHECK 2: Direct faculty name mentions
-        if self.faculty_ids:
-            q = user_query.lower()
-            query_tokens = q.split()
-
-            for name in self.faculty_ids:
-                name_tokens = name.lower().split()
-
-                # 1. Token-level containment ("jerry fails" → "jerry alan fails")
-                token_matches = sum(1 for qt in query_tokens for nt in name_tokens 
-                                    if qt == nt)
-
-                if token_matches >= 2:
-                    print("TOKEN DIRECT MATCH:", name)
-                    return self._answer_for_specific_faculty(name, history=history)
-
-                # 2. Token-level fuzzy matching ("jarry" ≈ "jerry")
-                fuzzy_matches = sum(1 for qt in query_tokens for nt in name_tokens 
-                                    if _similarity(qt, nt) > 0.70)
-
-                if fuzzy_matches >= 2:
-                    print("TOKEN FUZZY MATCH:", name)
-                    return self._answer_for_specific_faculty(name, history=history)
-
-         # NOW do query classification for remaining queries
-        query_type = self.classify_query_type(user_query.lower())
-
-        # Retrieve last professor if available
-        last = self.conversation_memory.get("last_retrieved")
-        last_prof = last[0]["name"] if last else None
-
-        if query_type == "followup_person" and last_prof:
-            return self._answer_followup_fact(last_prof, user_query)
-
-        if query_type == "general_concept":
-            # Not a follow-up → do NOT use fact mode
-            return self._answer_concept_definition(user_query)
-
-        # Handle follow-up queries using memory (Fix 3 - Option 3)
-        if self._is_followup(user_query):
-            last = self.conversation_memory.get("last_retrieved")
-            if last and len(last) > 0:
-                #return self._answer_for_specific_faculty(last[0]["name"], history=history)
-                # Route follow-ups into factual mode instead of advisor-summary mode
-                faculty_name = last[0]["name"]
-                return self._answer_followup_fact(faculty_name, user_query)
-
-        # Normal RAG retrieval
-        retrieved = self.retrieve_faculty(user_query, top_k=top_k)
-        self.conversation_memory["last_query"] = user_query
-        self.conversation_memory["last_retrieved"] = retrieved
-
-        # If nothing retrieved, give a clear fallback instead of silence
-        if not retrieved:
-            return (
-                "I could not match your question to any specific faculty profiles. "
-                "Try telling me your research interests, for example: "
-                "\"I am interested in AI and machine learning\" or "
-                "\"I want to work on cybersecurity and privacy\"."
-            )
-
-        context_blocks = []
-        for i, r in enumerate(retrieved, start=1):
-            block = (
-                f"FACULTY MATCH {i}:\n"
-                f"Name: {r['name']}\n"
-                f"Relevance score: {r['score']:.3f}\n"
-                f"Profile:\n{r['profile_text']}\n"
-            )
-            context_blocks.append(block)
-        faculty_context = "\n---\n".join(context_blocks)
-
-        rag_system_prompt = (
-            "You are the BSU Graduate Advisor AI Assistant for Computer Science students "
-            "at Boise State University.\n\n"
-            "You are connected to a factual database of BSU CS faculty profiles.\n"
-            "Below you are given the top retrieved faculty profiles that are relevant "
-            "to the student's question.\n\n"
-            "=== FACULTY CONTEXT START ===\n"
-            f"{faculty_context}\n"
-            "=== FACULTY CONTEXT END ===\n\n"
-            "Instructions:\n"
-            "- When recommending advisors, rely ONLY on the information in the faculty context.\n"
-            "- Recommend 1 to 3 specific faculty that best match the student's interests.\n"
-            "- Briefly explain why each recommended faculty member is a good match.\n"
-            "- Do NOT ask unnecessary clarifying questions. Make the best recommendation with the information you have.\n"
-            "- If the context is insufficient, say you are not sure and suggest contacting the department.\n"
-            "- Keep answers concise (2 to 4 sentences) and supportive."
-        )
-
-        messages = [
-            {"role": "system", "content": rag_system_prompt}
-        ]
-
-        # Optional: include short history for conversational feel
-        if history:
-            for msg in history[-4:]:
-                if msg.get("role") in ("user", "assistant"):
-                    messages.append({
-                        "role": msg["role"],
-                        "content": msg["content"]
-                    })
-
-        messages.append({
-            "role": "user",
-            "content": user_query
-        })
-
-        return self._query_groq(messages, max_tokens=800)
+    
 
     # =================================================================
     # LOW LEVEL GROQ CALL
@@ -601,3 +515,160 @@ class ResponseEngine:
                     continue
 
         return "I'm having trouble connecting right now. Please try again in a moment."
+    def generate_rag_answer(self, user_query, history=None, top_k=5):
+        """
+        RAG mode: 
+        1) Special handling:   list-all queries and fuzzy name matches. 
+        2) Otherwise retrieve top_k matching faculty profiles.  
+        3) Inject them into a system message.
+        4) Ask Llama to answer using ONLY that faculty context.
+        """
+
+        # ============================================================
+        # PRIORITY CHECK 1: List all faculty (should happen FIRST)
+        # ============================================================
+        if _detect_list_query(user_query) and self.faculty_ids:
+            return self._list_all_faculty_text()
+
+        # ============================================================
+        # PRIORITY CHECK 2: Direct faculty name mentions (BEFORE affirmative/followup)
+        # ============================================================
+        if self.faculty_ids:
+            q = user_query. lower()
+            query_tokens = q.split()
+
+            for name in self.faculty_ids:
+                name_tokens = name.lower().split()
+
+                # 1. Token-level containment ("jerry fails" → "jerry alan fails")
+                token_matches = sum(1 for qt in query_tokens for nt in name_tokens 
+                                    if qt == nt)
+
+                if token_matches >= 2:
+                    print("TOKEN DIRECT MATCH:", name)
+                    return self._answer_for_specific_faculty(name, history=history)
+
+                # 2. Token-level fuzzy matching ("jarry" ≈ "jerry")
+                fuzzy_matches = sum(1 for qt in query_tokens for nt in name_tokens 
+                                    if _similarity(qt, nt) > 0.70)
+
+                if fuzzy_matches >= 2:
+                    print("TOKEN FUZZY MATCH:", name)
+                    return self._answer_for_specific_faculty(name, history=history)
+
+        # ============================================================
+        # PRIORITY CHECK 3: Handle affirmative/negative responses
+        # ============================================================
+        affirmative_patterns = [
+            r'^(yes|yeah|yep|yup|sure|ok|okay|alright|please|yes please|sure thing)\. ?! ? $',
+            r'^(yes|yeah|sure),?\s+(tell me|show me|give me|send me|what about)',
+            r'^tell me more$',
+            r'^show me more$',
+            r'^more\. ?$',
+            r'^(that would be|that\'d be|sounds) (great|good|helpful|perfect|nice)',
+            r'^(go ahead|please do|i\'m interested)\.?$',
+        ]
+
+        negative_patterns = [
+            r'^(no|nope|nah|no thanks|no thank you)\.?!?$',
+            r'^(that\'s all|that\'s it|i\'m good|i\'m all set)\.?$',
+            r'^(nothing else|nothing more)\.?$',
+            r'^(i\'m done|all done)\.?$',
+        ]
+
+        query_lower = user_query.lower().strip()
+        is_affirmative = any(re.match(pattern, query_lower) for pattern in affirmative_patterns)
+        is_negative = any(re.match(pattern, query_lower) for pattern in negative_patterns)
+
+        # Handle affirmative responses
+        if is_affirmative:
+            last = self. conversation_memory.get("last_retrieved")
+            if last and len(last) > 0:
+                faculty_name = last[0]["name"]
+                return self._answer_followup_fact(faculty_name, user_query, history=history)
+
+        # Handle negative responses
+        if is_negative:
+            return "No problem!   Feel free to ask me about other faculty members, research areas, or anything else about the BSU CS graduate program.  How else can I help you?"
+
+        # ============================================================
+        # PRIORITY CHECK 4: Query classification for remaining queries
+        # ============================================================
+        query_type = self. classify_query_type(user_query. lower())
+
+        # Retrieve last professor if available
+        last = self.conversation_memory.get("last_retrieved")
+        last_prof = last[0]["name"] if last and len(last) > 0 else None
+
+        if query_type == "followup_person" and last_prof:
+            return self._answer_followup_fact(last_prof, user_query, history=history)
+
+        if query_type == "general_concept": 
+            # Not a follow-up → do NOT use fact mode
+            return self._answer_concept_definition(user_query)
+
+
+        # ============================================================
+        # PRIORITY CHECK 5: Normal RAG retrieval
+        # ============================================================
+        retrieved = self. retrieve_faculty(user_query, top_k=top_k)
+        self.conversation_memory["last_query"] = user_query
+        self.conversation_memory["last_retrieved"] = retrieved
+
+        # If nothing retrieved, give a clear fallback instead of silence
+        if not retrieved:
+            return (
+                "I could not match your question to any specific faculty profiles. "
+                "Try telling me your research interests, for example: "
+                "\"I am interested in AI and machine learning\" or "
+                "\"I want to work on cybersecurity and privacy\"."
+            )
+
+        context_blocks = []
+        for i, r in enumerate(retrieved, start=1):
+            block = (
+                f"FACULTY MATCH {i}:\n"
+                f"Name: {r['name']}\n"
+                f"Relevance score: {r['score']:.3f}\n"
+                f"Profile:\n{r['profile_text']}\n"
+            )
+            context_blocks.append(block)
+        faculty_context = "\n---\n".join(context_blocks)
+
+        rag_system_prompt = (
+            "You are the BSU Graduate Advisor AI Assistant for Computer Science students "
+            "at Boise State University.\n\n"
+            "You are connected to a factual database of BSU CS faculty profiles.\n"
+            "Below you are given the top retrieved faculty profiles that are relevant "
+            "to the student's question.\n\n"
+            "=== FACULTY CONTEXT START ===\n"
+            f"{faculty_context}\n"
+            "=== FACULTY CONTEXT END ===\n\n"
+            "Instructions:\n"
+            "- When recommending advisors, rely ONLY on the information in the faculty context.\n"
+            "- Recommend 1 to 3 specific faculty that best match the student's interests.\n"
+            "- Briefly explain why each recommended faculty member is a good match.\n"
+            "- Do NOT ask unnecessary clarifying questions.  Make the best recommendation with the information you have.\n"
+            "- If the context is insufficient, say you are not sure and suggest contacting the department.\n"
+            "- Keep answers concise (2 to 4 sentences) and supportive."
+        )
+
+        messages = [
+            {"role": "system", "content": rag_system_prompt}
+        ]
+
+        # Optional: include short history for conversational feel
+        if history:
+            for msg in history[-4:]: 
+                if msg. get("role") in ("user", "assistant"):
+                    messages.append({
+                        "role": msg["role"],
+                        "content": msg["content"]
+                    })
+
+        messages.append({
+            "role": "user",
+            "content": user_query
+        })
+
+        return self._query_groq(messages, max_tokens=800)

@@ -61,7 +61,7 @@ with st.sidebar:
     - "Hello, how are you?"
     - "Who does AI research?"
     - "Which professors are available?"
-    - "Tell me about Dr. Jun Zhuang"
+    - "Tell me about Dr. Xinyi Zhou"
     - "How do I choose an advisor?"
     """)
     
