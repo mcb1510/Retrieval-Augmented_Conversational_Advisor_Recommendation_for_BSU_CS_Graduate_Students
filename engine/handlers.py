@@ -1,47 +1,41 @@
 # engine/handlers.py
-# Handlers for different types of user queries.
 from engine.prompts import *
 from engine.utils import _similarity
 
-# This class handles different types of user queries.
+
 class QueryHandlers:
     """Handles different types of user queries."""
     
-    # Initialize with retriever and Groq client
     def __init__(self, retriever, groq_client):
         self.retriever = retriever
         self.groq = groq_client
         self.conversation_memory = {"last_query": None, "last_retrieved": None}
-    # List all faculty names in a human-readable format
+    
     def _list_all_faculty_text(self):
         """Return a human readable list of all faculty names."""
         if not self.retriever.faculty_ids:
             return "I do not have any faculty data loaded right now."
         
         # Clear conversation memory since we're starting fresh
-        self.conversation_memory = {
+        self. conversation_memory = {
             "last_query": None,
-            "last_retrieved": None
+            "last_retrieved":   None
         }
 
-        # Build the list of faculty names
         lines = [f"- {name}" for name in self.retriever.faculty_ids]
         return (
             "Here is the list of CS faculty I know about:\n\n"
-            + "\n".join(lines)
+            + "\n". join(lines)
             + "\n\nYou can ask me about any specific person, or tell me your interests and I will recommend a few advisors."
         )
 
-    # List all faculty with their research areas
     def _list_all_faculty_with_research(self):
         """Return faculty list with research areas."""
         if not self.retriever.faculty_ids or not self.retriever.faculty_texts:
             return "I do not have any faculty data loaded right now."
         
-        # Clear conversation memory since we're starting fresh
         self.conversation_memory = {"last_query": None, "last_retrieved": None}
 
-        # Build the list of faculty with research areas
         lines = []
         for name, profile in zip(self.retriever.faculty_ids, self.retriever.faculty_texts):
             # Extract between "Research Areas:" and " Paper " or " Google Scholar:"
@@ -50,29 +44,26 @@ class QueryHandlers:
             else:
                 research = "Research areas not listed"
             lines.append(f"• **{name}**: {research}")
-        # Return the formatted list
+        
         return (
             "Here is the list of CS faculty with their research areas:\n\n" 
             + "\n\n".join(lines)
             + "\n\nAsk me about any specific professor for more details!"
         )
     
-    # Handle query about a specific faculty member
     def _answer_for_specific_faculty(self, faculty_name, history=None):
         """
         Build a focused prompt for one matched faculty member.  
         This is used when we fuzzy match a misspelled name.
         """
-        if not self.retriever.faculty_ids or not self.retriever.faculty_texts:
+        if not self.retriever. faculty_ids or not self.retriever.faculty_texts:
             return "I could not load the faculty profiles right now."
 
-        # Locate the faculty in the dataset
         try:
             idx = self.retriever.faculty_ids.index(faculty_name)
         except ValueError:
             return "I could not find that faculty in my profiles."
 
-        # Retrieve the profile text
         profile = self.retriever.faculty_texts[idx]
         
         # Store memory for follow-up questions
@@ -82,10 +73,8 @@ class QueryHandlers:
             "profile_text": profile
         }]
         
-        # Build the prompt
         prompt = get_faculty_prompt(faculty_name, profile)
 
-        # Build conversation context from history if available
         messages = [
             {"role": "system", "content": prompt},
             {"role": "user", "content": f"Tell me about {faculty_name} as a potential advisor for me.  "}
@@ -96,13 +85,11 @@ class QueryHandlers:
             for msg in history[-3:]: 
                 messages.insert(1, {
                     "role": msg["role"],
-                    "content": msg["content"]
+                    "content":   msg["content"]
                 })
 
-        # Query Groq with the constructed messages
-        return self.groq.query(messages, max_tokens=600)
+        return self. groq.query(messages, max_tokens=600)
     
-    # Handle follow-up factual questions about a faculty member
     def _answer_followup_fact(self, faculty_name, user_query, history=None):
         """
         Extracts specific factual information (like office, email, interests)
@@ -115,7 +102,6 @@ class QueryHandlers:
         except ValueError:
             return "I couldn't find that faculty member anymore."
 
-        # Retrieve the profile text
         profile = self.retriever.faculty_texts[idx]
         
         # Build conversation context from history if available
@@ -123,43 +109,39 @@ class QueryHandlers:
         if history and len(history) > 0:
             recent_messages = history[-6:]  # Last 3 exchanges
             conversation_context = "RECENT CONVERSATION:\n"
-            for msg in recent_messages: # last 6 messages
-                role = "USER" if msg.get("role") == "user" else "ASSISTANT"
+            for msg in recent_messages:
+                role = "USER" if msg. get("role") == "user" else "ASSISTANT"
                 content = msg.get("content", "")
                 # Truncate very long messages
                 if len(content) > 300:
-                    content = content[:300] + "..."
+                    content = content[: 300] + "..."
                 conversation_context += f"{role}: {content}\n\n"
 
         # Build a conversational factual prompt
         prompt = get_followup_prompt(faculty_name, profile, conversation_context)
         # Replace placeholder in prompt
         prompt = prompt.replace("{user_query}", user_query)
-        # Build messages for Groq
+        
         messages = [
             {"role": "system", "content": prompt},
             {"role": "user", "content": user_query}
         ]
-        # Query Groq with the constructed messages
+
         return self.groq.query(messages, max_tokens=200)
     
-    # Determine if the query is a follow-up about the last retrieved faculty
     def _is_followup(self, query:  str) -> bool:
         q = query.lower()
         for name in self.retriever.faculty_ids:
             # direct substring check
             if name.lower() in q:
                 return False
-            # fuzzy similarity check
-            sim = _similarity(q, name.lower())
+            sim = _similarity(q, name. lower())
             if sim > 0.65: 
                 return False
 
-        # Check if we have a last retrieved faculty in memory
         mem_exists = self.conversation_memory.get("last_retrieved") is not None
         return mem_exists
     
-    # Classify the type of user query
     def classify_query_type(self, query):
         """
         Classify the user query into one of: 
@@ -184,7 +166,6 @@ class QueryHandlers:
 
         return "general_concept"  # safe fallback
 
-    # Handle general concept definition queries
     def _answer_concept_definition(self, query):
         prompt = CONCEPT_PROMPT.format(query=query)
         messages = [

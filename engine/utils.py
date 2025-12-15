@@ -1,41 +1,31 @@
 # engine/utils.py
-# This module contains utility functions for processing text queries,
-# including similarity measurement and intent detection for listing faculty.
 import re
 from difflib import SequenceMatcher
 
 
-# Similarity Measurement
-# This function computes a similarity ratio between two strings using
-# the SequenceMatcher from the difflib library.
-def _similarity(a: str, b: str) -> float:
+def _similarity(a:  str, b: str) -> float:
     """Return a similarity ratio between two strings."""
-    return SequenceMatcher(None, a.lower(), b.lower()).ratio()
+    return SequenceMatcher(None, a. lower(), b.lower()).ratio()
 
 
-# Intent Detection for Listing Faculty
-# These functions use regex patterns to detect if a user query is asking
-# for a list of faculty members, optionally including their research areas.
 def _detect_list_query(text: str) -> bool:
     """Detect if the user is asking for a list of all faculty using regex-based intent detection."""
     q = text.lower()
     patterns = [
-        r"(list|show|display|give|tell me).*(all|everyone|every).*(faculty|professors?)",
-        r"(list|show|display).*(faculty|professors?)",
-        r"(who are|what are).*(all|everyone).*(faculty|professors?)",
-        r"(all|everyone).*(faculty|professors?)",
+        r"(list|show|display|give|tell me).*(all|everyone|every).*(faculty|professors?  )",
+        r"(list|show|display).*(faculty|professors? )",
+        r"(who are|what are).*(all|everyone).*(faculty|professors? )",
+        r"(all|everyone).*(faculty|professors?  )",
     ]
     return any(re.search(pattern, q) for pattern in patterns)
 
-# Detect if user wants faculty list WITH research areas
+
 def _detect_list_with_research_query(text: str) -> bool:
     """Detect if user wants faculty list WITH research areas."""
     q = text.lower()
-    return bool(re.search(r"(list|show).*(faculty|professors?).*(research|areas?|interests?)", q))
+    return bool(re.search(r"(list|show).*(faculty|professors?  ).*(research|areas?|interests?)", q))
 
 
-# This is a class that expands user queries with domain-specific synonyms
-# to improve search results.
 class QueryProcessor:
     """Expands queries with domain-specific synonyms"""
     
@@ -43,24 +33,23 @@ class QueryProcessor:
         self.research_synonyms = {
             'ai': ['artificial intelligence', 'machine learning', 'deep learning', 'neural networks'],
             'ml': ['machine learning', 'deep learning', 'statistical learning'],
-            'security': ['cybersecurity', 'privacy', 'cryptography', 'network security'],
+            'security':  ['cybersecurity', 'privacy', 'cryptography', 'network security'],
             'hci': ['human computer interaction', 'user experience', 'interface design', 'usability'],
             'nlp': ['natural language processing', 'computational linguistics', 'text mining'],
             'cv': ['computer vision', 'image processing', 'pattern recognition'],
             'systems': ['distributed systems', 'operating systems', 'cloud computing', 'parallel computing'],
             'blockchain': ['distributed ledger', 'cryptocurrency', 'consensus protocols'],
         }
-    # Expand query with synonyms
+    
     def expand_query(self, query):
         """Expand query with synonyms"""
         query_lower = query.lower()
         expanded_terms = []
         
-        # Check for each keyword if it exists in the query
         for keyword, synonyms in self.research_synonyms.items():
             if keyword in query_lower:
                 expanded_terms.extend(synonyms)
-        # Return the original query with expanded terms appended
+        
         if expanded_terms:
             return f"{query} {' '.join(set(expanded_terms))}"
         return query

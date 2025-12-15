@@ -1,10 +1,9 @@
 # engine/rag_generator.py
-# RAG answer generator with priority checks for special queries.
 import re
 from engine.utils import _detect_list_query, _detect_list_with_research_query, _similarity
 from engine.prompts import get_rag_prompt
 
-# The main RAG answer generator class
+
 class RagAnswerGenerator:  
     """Handles the RAG answer generation logic with priority checks."""
     
@@ -15,8 +14,7 @@ class RagAnswerGenerator:
         self.groq_client = engine.groq_client
         self.conversation_memory = engine.conversation_memory
         self.faculty_ids = engine.faculty_ids
-    # The main RAG generation method
-    # This method implements several priority checks before defaulting to RAG retrieval.
+    
     def generate(self, user_query, history=None, top_k=5):
         """
         RAG mode: 
@@ -30,7 +28,7 @@ class RagAnswerGenerator:
         # PRIORITY CHECK 1: List with research areas (MUST come first)
         # ============================================================
         if _detect_list_with_research_query(user_query) and self.faculty_ids:
-            return self.handlers._list_all_faculty_with_research()
+            return self. handlers._list_all_faculty_with_research()
         
         # ============================================================
         # PRIORITY CHECK 2: List all faculty
@@ -42,7 +40,7 @@ class RagAnswerGenerator:
         # PRIORITY CHECK 3: Direct faculty name mentions (inline like original)
         # ============================================================
         if self.faculty_ids:
-            q = user_query.lower()
+            q = user_query. lower()
             query_tokens = q.split()
 
             for name in self.faculty_ids:
@@ -51,7 +49,7 @@ class RagAnswerGenerator:
                 # 1. Token-level containment ("jerry fails" → "jerry alan fails")
                 token_matches = sum(1 for qt in query_tokens for nt in name_tokens 
                                     if qt == nt)
-                
+
                 if token_matches >= 2:
                     print("TOKEN DIRECT MATCH:", name)
                     return self.handlers._answer_for_specific_faculty(name, history=history)
@@ -62,7 +60,7 @@ class RagAnswerGenerator:
 
                 if fuzzy_matches >= 2:
                     print("TOKEN FUZZY MATCH:", name)
-                    return self.handlers._answer_for_specific_faculty(name, history=history)
+                    return self. handlers._answer_for_specific_faculty(name, history=history)
 
         # ============================================================
         # PRIORITY CHECK 4: Handle affirmative/negative responses (inline like original)
@@ -97,12 +95,12 @@ class RagAnswerGenerator:
 
         # Handle negative responses
         if is_negative:
-            return "No problem! Feel free to ask me about other faculty members, research areas, or anything else about the BSU CS graduate program. How else can I help you?"
+            return "No problem!   Feel free to ask me about other faculty members, research areas, or anything else about the BSU CS graduate program.   How else can I help you?"
 
         # ============================================================
         # PRIORITY CHECK 5: Query classification for remaining queries
         # ============================================================
-        query_type = self.handlers.classify_query_type(user_query.lower())
+        query_type = self. handlers. classify_query_type(user_query. lower())
 
         # Retrieve last professor if available
         last = self.conversation_memory.get("last_retrieved")
@@ -130,8 +128,7 @@ class RagAnswerGenerator:
                 "\"I am interested in AI and machine learning\" or "
                 "\"I want to work on cybersecurity and privacy\"."
             )
-        
-        # Build faculty context for the prompt
+
         context_blocks = []
         for i, r in enumerate(retrieved, start=1):
             block = (
@@ -141,12 +138,10 @@ class RagAnswerGenerator:
                 f"Profile:\n{r['profile_text']}\n"
             )
             context_blocks.append(block)
-        # Combine all context blocks
         faculty_context = "\n---\n".join(context_blocks)
-        # Build the RAG system prompt
+
         rag_system_prompt = get_rag_prompt(faculty_context)
 
-        # Build the message list
         messages = [
             {"role": "system", "content": rag_system_prompt}
         ]
@@ -154,7 +149,7 @@ class RagAnswerGenerator:
         # Optional: include short history for conversational feel
         if history:
             for msg in history[-4:]:  
-                if msg.get("role") in ("user", "assistant"):
+                if msg. get("role") in ("user", "assistant"):
                     messages.append({
                         "role": msg["role"],
                         "content": msg["content"]
@@ -165,5 +160,4 @@ class RagAnswerGenerator:
             "content": user_query
         })
 
-        # Query Groq with the constructed messages
         return self.groq_client.query(messages, max_tokens=800)
