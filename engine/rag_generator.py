@@ -28,7 +28,7 @@ class RagAnswerGenerator:
         # PRIORITY CHECK 1: List with research areas (MUST come first)
         # ============================================================
         if _detect_list_with_research_query(user_query) and self.faculty_ids:
-            return self. handlers._list_all_faculty_with_research()
+            return self.handlers._list_all_faculty_with_research()
         
         # ============================================================
         # PRIORITY CHECK 2: List all faculty
@@ -40,7 +40,7 @@ class RagAnswerGenerator:
         # PRIORITY CHECK 3: Direct faculty name mentions (inline like original)
         # ============================================================
         if self.faculty_ids:
-            q = user_query. lower()
+            q = user_query.lower()
             query_tokens = q.split()
 
             for name in self.faculty_ids:
@@ -60,7 +60,7 @@ class RagAnswerGenerator:
 
                 if fuzzy_matches >= 2:
                     print("TOKEN FUZZY MATCH:", name)
-                    return self. handlers._answer_for_specific_faculty(name, history=history)
+                    return self.handlers._answer_for_specific_faculty(name, history=history)
 
         # ============================================================
         # PRIORITY CHECK 4: Handle affirmative/negative responses (inline like original)
@@ -95,12 +95,12 @@ class RagAnswerGenerator:
 
         # Handle negative responses
         if is_negative:
-            return "No problem!   Feel free to ask me about other faculty members, research areas, or anything else about the BSU CS graduate program.   How else can I help you?"
+            return "No problem! Feel free to ask me about other faculty members, research areas, or anything else about the BSU CS graduate program. How else can I help you?"
 
         # ============================================================
         # PRIORITY CHECK 5: Query classification for remaining queries
         # ============================================================
-        query_type = self. handlers. classify_query_type(user_query. lower())
+        query_type = self.handlers.classify_query_type(user_query.lower())
 
         # Retrieve last professor if available
         last = self.conversation_memory.get("last_retrieved")
@@ -149,7 +149,7 @@ class RagAnswerGenerator:
         # Optional: include short history for conversational feel
         if history:
             for msg in history[-4:]:  
-                if msg. get("role") in ("user", "assistant"):
+                if msg.get("role") in ("user", "assistant"):
                     messages.append({
                         "role": msg["role"],
                         "content": msg["content"]

@@ -1,13 +1,15 @@
-# engine/retrieval.py
+# This file is part of the retrieval module for faculty profiles.
+# # engine/retrieval.py
 import json
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.preprocessing import normalize
 
-
+# The FacultyRetriever class handles loading and retrieving faculty profiles.
 class FacultyRetriever:
     """Handles faculty profile retrieval using semantic embeddings."""
     
+    # Initialization and resource loading
     def __init__(self, query_processor):
         self.query_processor = query_processor
         self. embeddings = None
@@ -16,6 +18,7 @@ class FacultyRetriever:
         self.embed_model = None
         self._load_rag_resources()
     
+    # Load RAG resources from disk
     def _load_rag_resources(self):
         """
         Load faculty embeddings and metadata for retrieval.
@@ -48,6 +51,7 @@ class FacultyRetriever:
             # Ensure embeddings are L2-normalized (just in case)
             self.embeddings = normalize(self.embeddings)
 
+            # Test print
             print(f"[RAG] Loaded {len(self.faculty_ids)} faculty profiles for retrieval.")
         except Exception as e: 
             print(f"[RAG] WARNING: could not load RAG resources: {e}")
@@ -56,6 +60,7 @@ class FacultyRetriever:
             self.faculty_texts = None
             self.embed_model = None
     
+    # Retrieve top_k relevant faculty profiles
     def retrieve_faculty(self, query, top_k=3):
         """
         Retrieve top_k most relevant faculty profiles for a given query.
@@ -73,9 +78,11 @@ class FacultyRetriever:
         # Cosine similarity because embeddings are normalized
         sims = self.embeddings @ q_emb
 
+        # Get top_k results
         top_k = min(top_k, len(sims))
         idxs = np.argsort(sims)[::-1][: top_k]
 
+        # Build results
         results = []
         for idx in idxs:
             results.append({

@@ -467,7 +467,7 @@ class ComprehensiveTestSuite:
     
     def run_all_tests(self):
         """Run all test suites"""
-        print("\n🚀 STARTING COMPREHENSIVE TEST SUITE\n")
+        print("\n STARTING COMPREHENSIVE TEST SUITE\n")
         
         try:
             self.test_retrieval_quality()
@@ -480,7 +480,7 @@ class ComprehensiveTestSuite:
             output_file = self.save_results()
             
             print("\n" + "=" * 70)
-            print("✅ ALL TESTS COMPLETED SUCCESSFULLY!")
+            print(" ALL TESTS COMPLETED SUCCESSFULLY!")
             print("=" * 70)
             print(f"\nResults saved to: {output_file}")
             print("\nSummary:")
@@ -492,7 +492,7 @@ class ComprehensiveTestSuite:
             print("=" * 70 + "\n")
             
         except Exception as e:
-            print(f"\n❌ ERROR: {e}")
+            print(f"\n ERROR: {e}")
             import traceback
             traceback.print_exc()
             sys.exit(1)
