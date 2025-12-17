@@ -203,6 +203,6 @@ The Groq API has rate limits. The engine includes:
 - Ensure conversation history is being passed correctly
 - Check that `conversation_memory` is shared across components
 
-### RIGHT NOW WORKING UNDER RESPONSE_ENGINE_LEGACY. MODULES HAVE A NEW BUG THAT I HAVENT BEEN ABLE TO FIX!!!!!!
+RIGHT NOW WORKING UNDER RESPONSE_ENGINE_LEGACY. MODULES HAVE A NEW BUG THAT I HAVENT BEEN ABLE TO FIX!!!!!!
 
 
