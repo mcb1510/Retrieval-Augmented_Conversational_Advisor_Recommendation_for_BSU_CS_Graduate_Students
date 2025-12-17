@@ -203,23 +203,6 @@ The Groq API has rate limits. The engine includes:
 - Ensure conversation history is being passed correctly
 - Check that `conversation_memory` is shared across components
 
-## Contributing
+# RIGHT NOW WORKING UNDER RESPONSE_ENGINE_LEGACY. MODULES HAVE A NEW BUG THAT I HAVENT BEEN ABLE TO FIX!!!!!!
 
-To extend the system:
 
-1. **Add new query types** - Edit `handlers.py`
-2. **Modify prompts** - Edit `prompts.py`
-3. **Add synonyms** - Edit `utils.py` or `config.py`
-4. **Change retrieval** - Edit `retrieval.py`
-
-## License
-
-This project is for educational purposes at Boise State University.
-
-## Contact
-
-For questions about this project, contact the BSU CS Department.
-
----
-
-**Built with ❤️ for BSU CS Graduate Students**
