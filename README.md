@@ -1,6 +1,7 @@
 # Retrieval-Augmented Conversational Advisor Recommendation for BSU CS Graduate Students
 An intelligent chatbot assistant that helps Computer Science students at Boise State University find suitable research advisors based on their interests, skills, and goals.<br>
 ([Live Demo](https://graduate-advisor-bsu.streamlit.app/))
+([DataBase](https://docs.google.com/spreadsheets/d/1xVY4-tXLUuDhc-K8q66GNjJL-zQWyEO1Iz0_6h4XWgU/edit?gid=0#gid=0))
 ## Overview
 
 This project uses **Retrieval-Augmented Generation (RAG)** with the Groq API (Llama 3.3) to provide personalized faculty recommendations and answer questions about BSU CS graduate programs. The system retrieves relevant faculty profiles using semantic search and generates contextual, conversational responses.
